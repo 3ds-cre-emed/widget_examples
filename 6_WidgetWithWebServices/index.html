@@ -1,0 +1,645 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<!-- Put this to connect netvibes -->
+<html
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:widget="http://www.netvibes.com/ns/"
+>
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- CSS -->
+  <style type="text/css">
+    body {
+      font-family: "Ubuntu", sans-serif;
+    }
+
+    .dropzone {
+      margin: 0.5%;
+      width: auto;
+      height: auto;
+      border: 2px dashed #ccc;
+      color: #ccc;
+      line-height: 95vh;
+      text-align: center;
+    }
+
+    .basket {
+      margin: 0.5%;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+    }
+
+    .infoendwidget {
+      font-family: "Ubuntu", sans-serif;
+      margin: 1.5%;
+      width: 100%;
+      color: #bbbbbb;
+      font-size: inherit;
+    }
+
+    .dropzone.dragover {
+      margin: 0.5%;
+      font-weight: bold;
+      border-color: #0f5486;
+      color: #0f5486;
+    }
+
+    table {
+      font-family: "Ubuntu", sans-serif;
+      border-collapse: collapse;
+      width: 99%;
+    }
+
+    td,
+    th {
+      border: 1px solid #dddddd;
+      text-align: left;
+      padding: 8px;
+    }
+
+    tr:nth-child(even) {
+      background-color: #dddddd;
+    }
+
+    .button {
+      font-family: "Ubuntu", sans-serif;
+      background-color: #1da9ff;
+      border: none;
+      color: white;
+      margin: 4px;
+      padding: 8px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 14px;
+      margin: 4px 2px;
+      cursor: pointer;
+      border-radius: 8px;
+      width: 100%;
+    }
+
+    .copied {
+      font-family: "Ubuntu", sans-serif;
+      background-color: #0fc71e;
+      border: none;
+      color: white;
+      margin: 4px;
+      padding: 8px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 14px;
+      margin: 4px 2px;
+      cursor: pointer;
+      border-radius: 8px;
+      width: 100%;
+    }
+
+    .button:hover {
+      background-color: #0f5486;
+      color: white;
+    }
+  </style>
+
+  <!-- Widget -->
+  <head>
+    <!-- Widget Name -->
+    <title>Widget with web services</title>
+
+    <!-- Meta Definitions -->
+    <meta name="author" content="Selimhan Bek" />
+    <meta name="description" content="Sample Widget Hello World" />
+    <meta name="keywords" content="CAA Use Case" />
+    <meta name="apiVersion" content="1.0" />
+    <meta name="debugMode" content="true" />
+    <meta name="strictMode" content="false" />
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- Load CSS -->
+    <link rel="stylesheet" type="text/css" href="./main.css" />
+
+    <!-- Load JS files -->
+    <script type="text/javascript" src="./main.js"></script>
+
+    <!-- Widget Preferences -->
+    <widget:preferences name="Preferences">
+      <!-- Multiple choice attribute -->
+      <widget:preference
+        name="ObjectType"
+        type="list"
+        label="Select Object Type"
+        defaultValue="VPMReference"
+      >
+        <widget:option
+          label="VPMReference"
+          value="VPMReference"
+        ></widget:option>
+        <widget:option
+          label="Physical Product"
+          value="Physical Product"
+        ></widget:option>
+        <widget:option label="Document" value="Document"></widget:option>
+        <widget:option label="Drawing" value="Drawing"></widget:option>
+      </widget:preference>
+
+      <!-- Text attribute -->
+      <widget:preference
+        name="downloadfolderpath"
+        type="text"
+        label="Download Folder Path"
+        defaultValue="C:\temp"
+      />
+    </widget:preferences>
+
+    <!-- My JS Codes -->
+    <script type="text/javascript">
+      /* Meta Data */
+      let myMetaInfo = widget.metas;
+
+      /* Get Widget Preferences */
+      let downloadFolderPath = widget.getValue("downloadfolderpath");
+      let curType = widget.getValue("ObjectType");
+      let curSecurityContext = "";
+
+      /* Basket Items */
+      let basketItems = [];
+
+      /* Platform variables */
+      let baseURL = "";
+      let tenant = "";
+      let userCredentials = "";
+
+      /* Initialize Widget */
+      function runWidget() {
+        if (widget) {
+          executeWidgetCode();
+        } else {
+          console.warn("Defered widget is loading...");
+          setTimeout(runWidget, 100); //Wait for widget object to be added correctly
+        }
+      }
+
+      /* Execute widget codes here */
+      function executeWidgetCode() {
+        /* Global Requires */
+        require([
+          "DS/WAFData/WAFData",
+          "DS/i3DXCompassServices/i3DXCompassServices",
+        ], function (WAFData, i3DXCompassServices) {
+          /* My Widget Callbacks */
+          let MyWidget = {
+            onLoad: function () {
+              /* Clear Widget */
+              widget.body.innerHTML = "";
+
+              /* Get platform services */
+              MyWidget.getPlatformServices();
+
+              /* Update SecurityContext */
+              MyWidget.updateSecurityContext();
+
+              /* Create a drop area */
+              MyWidget.createDropArea();
+
+              /* Drag & Drop Settings */
+              MyWidget.onDragDrop();
+            },
+            onRefresh: function () {
+              /* Clear Widget Body */
+              widget.body.innerHTML = "";
+
+              /* Clear basket items */
+              MyWidget.clearBasket();
+
+              /* Get platform services */
+              MyWidget.getPlatformServices();
+
+              /* Update widget preferences */
+              MyWidget.updatePreferences();
+
+              /* Create a drop area */
+              MyWidget.createDropArea();
+
+              /* Drag & Drop Settings */
+              MyWidget.onDragDrop();
+            },
+            createDropArea: function () {
+              /* Create an element */
+              let dr = document.createElement("div");
+              dr.className = "dropzone";
+              dr.id = "dropzone";
+              dr.innerHTML = "Drop Here";
+
+              /* add to widget body*/
+              widget.body.appendChild(dr);
+            },
+            createNewDataTable: function () {
+              try {
+                if (basketItems.length > 0) {
+                  /* Create a new table */
+                  let tbl = document.createElement("table");
+                  tbl.className = "table";
+                  tbl.id = "basketTable";
+
+                  /* Create first row */
+                  let firstRow = document.createElement("tr");
+
+                  let xDisplayName = document.createElement("th");
+                  xDisplayName.style = "font-weight:bold";
+                  xDisplayName.innerHTML = "Name";
+                  let xDisplayType = document.createElement("th");
+                  xDisplayType.style = "font-weight:bold";
+                  xDisplayType.innerHTML = "Type";
+                  let xActionGetInfo = document.createElement("th");
+                  xActionGetInfo.style = "font-weight:bold";
+                  xActionGetInfo.innerHTML = "Action (Copy JSON)";
+
+                  firstRow.appendChild(xDisplayName);
+                  firstRow.appendChild(xDisplayType);
+                  firstRow.appendChild(xActionGetInfo);
+
+                  tbl.appendChild(firstRow);
+
+                  /* Create data rows */
+                  for (let i = 0; i < basketItems.length; i++) {
+                    const obj = basketItems[i];
+
+                    let newRow = document.createElement("tr");
+                    newRow.id = "row_" + i;
+
+                    let a1 = document.createElement("th");
+                    a1.innerHTML = obj.displayName;
+                    let a2 = document.createElement("th");
+                    a2.innerHTML = obj.displayType;
+                    let a3 = document.createElement("th");
+
+                    let btnGetInfo = document.createElement("button");
+                    btnGetInfo.className = "button";
+                    btnGetInfo.id = "btn_GetInfo_" + i;
+                    btnGetInfo.innerHTML = "Get Info";
+                    btnGetInfo.onclick = function () {
+                      MyWidget.getEngObjDetailsInfo(
+                        obj.objectId,
+                        btnGetInfo.id
+                      );
+                    };
+
+                    a3.appendChild(btnGetInfo);
+
+                    newRow.appendChild(a1);
+                    newRow.appendChild(a2);
+                    newRow.appendChild(a3);
+
+                    tbl.appendChild(newRow);
+                  }
+
+                  /* Update Dropzone State*/
+                  let drpzne = document.getElementById("dropzone");
+                  drpzne.innerHTML = "";
+                  drpzne.appendChild(tbl);
+
+                  /* Add Info details */
+                  let endinfo = document.createElement("div");
+                  endinfo.className = "infoendwidget";
+                  endinfo.innerHTML = "Total Items: " + basketItems.length;
+                  drpzne.appendChild(endinfo);
+                }
+              } catch (error) {
+                console.log(error.toString());
+              }
+            },
+            clearBasket: function () {
+              /* Clear the all basket items in array */
+              basketItems = [];
+            },
+            onDragDrop: function () {
+              /* Set Dropzone */
+              let dropzone = document.getElementById("dropzone");
+
+              /* On drop start */
+              dropzone.ondrop = function (e) {
+                e.preventDefault();
+
+                this.className =
+                  basketItems.length == 0 ? "dropzone" : "basket";
+              };
+
+              /* On drag over */
+              dropzone.ondragover = function () {
+                let curEl = document.getElementById("dropzone");
+                curEl.innerHTML = "Drop Here";
+                this.className = "dropzone dragover";
+                return false;
+              };
+
+              /* On drag leave */
+              dropzone.ondragleave = function () {
+                if (basketItems.length == 0) {
+                  this.className = "dropzone";
+                } else {
+                  this.className = "basket";
+                  MyWidget.createNewDataTable();
+                }
+              };
+
+              /* On drop completed */
+              dropzone.ondrop = function (event) {
+                /* Get string data to JSON */
+                const data = event.dataTransfer.getData("text"); // text/plain
+                const obj = JSON.parse(data);
+                console.log(obj.data.items);
+
+                /* Check Basket Items and Types, then push if doesn't exist */
+                for (let i = 0; i < obj.data.items.length; i++) {
+                  const e = obj.data.items[i];
+
+                  /* Check is Exist ? */
+                  let isExist = MyWidget.checkItemIsExistInBasket(
+                    e.objectId,
+                    e.displayName
+                  );
+
+                  if (!isExist) {
+                    /* Is Object type */
+                    if (e.displayType == curType) {
+                      basketItems.push(e);
+                    } else if (curType == "VPMReference") {
+                      if (
+                        e.displayType == "Physical Product" ||
+                        e.displayType == "VPMReference"
+                      ) {
+                        basketItems.push(e);
+                      }
+                    }
+                  }
+                }
+
+                /* End event */
+                event.preventDefault();
+                this.className =
+                  basketItems.length == 0 ? "dropzone" : "basket";
+
+                /* Create a new table */
+                MyWidget.createNewDataTable();
+              };
+            },
+            onKeyboardAction: function (key) {
+              /* Is clicked enter? */
+              if (key == 13) {
+                if (basketItems.length == 0) {
+                  console.log({
+                    activeTenant: tenant,
+                    currentSecurityContext: curSecurityContext,
+                    baseURL: baseURL,
+                    csrf: "selemananan",
+                  });
+                } else {
+                  alert(basketItems[0].objectId);
+                }
+              }
+            },
+            getPlatformServices: function () {
+              /* Connect to Compass Service for collect credentials */
+              i3DXCompassServices.getServiceUrl({
+                serviceName: "3DSpace",
+                platformId: widget.getValue("x3dPlatformId"),
+                onComplete: function (data) {
+                  /* Save the baseURL */
+                  baseURL = data;
+
+                  /* Update Tenant */
+                  MyWidget.updateTenant();
+                },
+                onFailure: function () {
+                  console.warn(
+                    "An error occured connect to compass services..."
+                  );
+                },
+              });
+            },
+            updatePreferences: function () {
+              /* Update all preferences */
+              downloadFolderPath = widget.getValue("downloadfolderpath");
+              curType = widget.getValue("ObjectType");
+              curSecurityContext = widget.getValue("SecurityContextPref");
+
+              console.log(userCredentials);
+            },
+            updateSecurityContext: function () {
+              /* Connect to compass service */
+              i3DXCompassServices.getServiceUrl({
+                serviceName: "3DSpace",
+                platformId: widget.getValue("x3dPlatformId"),
+                onComplete: function (serviceUrl) {
+                  /* Create a new url */
+                  const url =
+                    serviceUrl +
+                    "/resources/modeler/pno/person?current=true&select=firstname&select=lastname&select=email&select=address&select=phone&select=isactive&select=company&select=collabspaces&select=preferredcredentials";
+
+                  /* Send a request */
+                  WAFData.authenticatedRequest(url, {
+                    method: "GET",
+                    type: "json",
+
+                    onComplete: function (userInfo) {
+                      /* Save user credential */
+                      userCredentials = userInfo;
+
+                      /* All allowed security context list */
+                      let arr = [];
+
+                      /* User preffered SecurityContext */
+                      let prefferedCS =
+                        userCredentials.preferredcredentials.role.name +
+                        "." +
+                        userCredentials.preferredcredentials.organization.name +
+                        "." +
+                        userCredentials.preferredcredentials.collabspace.name;
+
+                      /* Parse collaborative spaces */
+                      try {
+                        /* Parse all collaborative spaces as widget preferences */
+                        for (
+                          let i = 0;
+                          i < userCredentials.collabspaces.length;
+                          i++
+                        ) {
+                          const cs = userCredentials.collabspaces[i];
+
+                          for (let j = 0; j < cs.couples.length; j++) {
+                            const e = cs.couples[j];
+                            const curSC =
+                              e.role.name +
+                              "." +
+                              e.organization.name +
+                              "." +
+                              cs.name;
+
+                            arr.push({
+                              label: cs.name + "." + e.role.name,
+                              value: curSC,
+                            });
+                          }
+                        }
+                      } catch (error) {
+                        console.warn(error);
+                        arr = [
+                          {
+                            label:
+                              prefferedCS.split(".")[2] +
+                              "." +
+                              prefferedCS.split(".")[0],
+                            value: prefferedCS,
+                          },
+                        ];
+                      }
+
+                      /* Create a new widget preferences for active security context */
+                      widget.addPreference({
+                        name: "SecurityContextPref",
+                        type: "list",
+                        label:
+                          "Current Security Context (Active Collaborative Space)",
+                        options: arr,
+                        defaultValue: prefferedCS,
+                      });
+
+                      /* Update Preferences */
+                      MyWidget.updatePreferences();
+                    },
+                    onFailure: function () {
+                      console.warn(
+                        "An error occured connect to compass services..."
+                      );
+                    },
+                    onPassportError: function () {
+                      widget.body.innerHTML =
+                        "An error occured with 3DPassport. Please delete this widget and reopen the browser, reauthenticate then reopen this widget.";
+                    },
+                    onTimeout: function () {
+                      widget.body.innerHTML =
+                        "Server timeout. Please delete this widget, then reopen this widget.";
+                    },
+                  });
+                },
+                onFailure: function () {
+                  console.warn(
+                    "An error occured connect to compass services..."
+                  );
+                },
+              });
+            },
+            updateTenant: function () {
+              /* Connect to compass service */
+              i3DXCompassServices.getServiceUrl({
+                serviceName: "3DSpace",
+                platformId: widget.getValue("PlatFormInstanceId"),
+                onComplete: function (pfs) {
+                  let tenantNo = "";
+                  for (let i = 0; i < pfs.length; i++) {
+                    if (pfs[i].url == baseURL) {
+                      tenantNo = pfs[i].platformId;
+                    }
+                  }
+
+                  tenant = tenantNo;
+                },
+                onFailure: function () {
+                  console.warn(
+                    "An error occured connect to compass services..."
+                  );
+                },
+              });
+            },
+            getEngObjDetailsInfo: function (pid, btnID) {
+              /* Create an url */
+              const url =
+                baseURL +
+                "/resources/v1/modeler/dseng/dseng:EngItem/" +
+                pid +
+                "?$mask=dsmveng:EngItemMask.Details";
+
+              /* Create a new request */
+              WAFData.authenticatedRequest(url, {
+                method: "GET",
+                type: "json",
+                headers: {
+                  SecurityContext: curSecurityContext,
+                },
+
+                onComplete: function (details, headers) {
+                  /* Copy response to Clipboard */
+                  console.log(details.member[0]);
+                  let str = JSON.stringify(details.member[0]);
+                  navigator.clipboard.writeText(str);
+
+                  /* Change Button CSS */
+                  if (btnID != "") {
+                    let curBtn = document.getElementById(btnID);
+                    curBtn.className = "copied";
+                    curBtn.innerHTML = "Copied";
+                  }
+
+                  alert("Copied to clipboard successfully!");
+                },
+                onFailure: function () {
+                  alert(
+                    "Please check widget preferences, object type must be Physical Product or VPMReference"
+                  );
+                  console.warn(
+                    "An error occured connect to compass services..."
+                  );
+                },
+                onPassportError: function () {
+                  widget.body.innerHTML =
+                    "An error occured with 3DPassport. Please delete this widget and reopen the browser, reauthenticate then reopen this widget.";
+                },
+                onTimeout: function () {
+                  widget.body.innerHTML =
+                    "Server timeout. Please delete this widget, then reopen this widget.";
+                },
+              });
+            },
+            checkItemIsExistInBasket: function (id, name) {
+              for (let i = 0; i < basketItems.length; i++) {
+                const element = basketItems[i];
+                if (element.objectId == id && element.displayName == name) {
+                  return true;
+                }
+              }
+              return false;
+            },
+          };
+
+          /* Add events to widget */
+          widget.addEvents({
+            onLoad: MyWidget.onLoad,
+            onRefresh: MyWidget.onRefresh,
+            onDragDrop: MyWidget.onDragDrop,
+            onKeyboardAction: MyWidget.onKeyboardAction,
+            clearBasket: MyWidget.clearBasket,
+            createDropArea: MyWidget.createDropArea,
+            getPlatformServices: MyWidget.getPlatformServices,
+            updatePreferences: MyWidget.updatePreferences,
+            updateSecurityContext: MyWidget.updateSecurityContext,
+            updateTenant: MyWidget.updateTenant,
+          });
+        });
+      }
+
+      /* Run Widget*/
+      runWidget();
+    </script>
+  </head>
+  <body></body>
+</html>
