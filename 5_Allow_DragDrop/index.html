@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:widget="http://www.netvibes.com/ns/"
+>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap"
+    rel="stylesheet"
+  />
+  <style type="text/css">
+    body {
+      font-family: "Ubuntu", sans-serif;
+    }
+
+    .dropzone {
+      margin: 0.5%;
+      width: auto;
+      height: auto;
+      border: 2px dashed #ccc;
+      color: #ccc;
+      line-height: 95vh;
+      text-align: center;
+    }
+
+    .dropzone.dragover {
+      margin: 0.5%;
+      font-weight: bold;
+      border-color: #0f5486;
+      color: #0f5486;
+    }
+  </style>
+  <head>
+    <!-- Widget Name -->
+    <title>Connect to 3DSpace</title>
+
+    <!-- My JS Codes -->
+    <script>
+      /* global widget,require */
+      require([
+        "DS/WAFData/WAFData",
+        "DS/i3DXCompassServices/i3DXCompassServices",
+      ], function (WAFData, i3DXCompassServices) {
+        console.log("MyWidget creating...");
+        let MyWidget = {
+          serviceUrl: "",
+          onLoad: function () {
+            i3DXCompassServices.getPlatformServices({
+              onComplete: function (data) {
+                // widget.body.innerHTML =
+                //   '<div id="uploads"></div><div class="dropzone" id="dropzone">Drop Here</div>';
+              },
+              onFailure: function () {
+                console.warn("Failure");
+              },
+            });
+          },
+          onRefresh: function () {
+            // widget.body.innerHTML =
+            //   '<div id="uploads"></div><div class="dropzone" id="dropzone">Drop Here</div>';
+          },
+        };
+
+        console.log("MyWidget definingg...");
+
+        // Define callbacks on widget events
+        widget.addEvent("onLoad", MyWidget.onLoad);
+        widget.addEvent("onRefresh", MyWidget.onRefresh);
+
+        console.log("defining completed ...");
+      });
+    </script>
+  </head>
+  <body>
+    <!-- <div id="uploads"></div> -->
+    <div class="dropzone" id="dropzone">Drop Here</div>
+  </body>
+  <script type="text/javascript">
+    (function () {
+      let dropzone = document.getElementById("dropzone");
+
+      dropzone.ondrop = function (e) {
+        e.preventDefault();
+        this.className = "dropzone";
+      };
+
+      dropzone.ondragover = function () {
+        this.className = "dropzone dragover";
+        return false;
+      };
+
+      dropzone.ondragleave = function () {
+        this.className = "dropzone";
+      };
+
+      dropzone.ondrop = function (event) {
+        const data = event.dataTransfer.getData("text"); //text/plain
+        //console.log(data);
+
+        const obj = JSON.parse(data);
+        console.log(obj.data.items);
+
+        let x = [];
+        for (let i = 0; i < obj.data.items.length; i++) {
+          const e = obj.data.items[i];
+          x.push(e.displayName);
+        }
+
+        alert("Selected Items;\n" + x.toString().replaceAll(",", ",\n"));
+
+        event.preventDefault();
+        this.className = "dropzone";
+      };
+    })();
+  </script>
+</html>
