@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!-- Put this to connect netvibes -->
+<html
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:widget="http://www.netvibes.com/ns/"
+>
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- Widget -->
+  <head>
+    <!-- Widget Name -->
+    <title>First External Widget</title>
+
+    <!-- Meta Definitions -->
+    <meta name="author" content="Selimhan Bek" />
+    <meta name="description" content="Sample Widget Hello World" />
+    <meta name="keywords" content="CAA Use Case" />
+    <meta name="apiVersion" content="1.0" />
+    <meta name="debugMode" content="true" />
+    <meta name="strictMode" content="false" />
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- Load CSS -->
+    <link rel="stylesheet" type="text/css" href="./main.css" />
+
+    <!-- Load JS files -->
+    <script type="text/javascript" src="./main.js"></script>
+
+    <!-- Widget Preferences -->
+    <widget:preferences name="Oww here is the prefs">
+      <!-- Multiple choice attribute -->
+      <widget:preference
+        name="TeamNames"
+        type="list"
+        label="Names"
+        defaultValue="seleman"
+      >
+        <widget:option label="seleman" value="seleman"></widget:option>
+        <widget:option label="alessandro" value="alessandro"></widget:option>
+      </widget:preference>
+
+      <!-- Text attribute -->
+      <widget:preference
+        type="text"
+        name="Test"
+        label="Type of Object"
+        defaultValue="Demo Value"
+      />
+
+      <!-- Text attribute -->
+      <widget:preference
+        type="text"
+        name="UserName"
+        label="User Name"
+        defaultValue="Firstname Lastname"
+      />
+    </widget:preferences>
+
+    <!-- My JS Codes -->
+    <script>
+      /* Meta Data */
+      let myMetaInfo = widget.metas;
+
+      /* Set Widget Preferences */
+      var value = "seleman";
+      widget.setValue("TeamNames", "seleman");
+
+      /* My Widget Callbacks */
+      let MyWidget = {
+        onLoad: function () {
+          widget.body.innerHTML = "Widget loaded successfully!";
+        },
+        onRefresh: function () {
+          widget.body.innerHTML = "Widget refreshed successfully!";
+        },
+      };
+
+      /* Add events to widget */
+      widget.addEvent("onLoad", MyWidget.onLoadCB);
+      widget.addEvent("onRefresh", MyWidget.onRefresh);
+    </script>
+  </head>
+  <body>
+    Hello, widget is loading...
+  </body>
+</html>
