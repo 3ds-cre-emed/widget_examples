@@ -1,0 +1,79 @@
+<!-- Default html template -->
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<!-- Needs to put for connection -->
+<html
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:widget="http://www.netvibes.com/ns/"
+>
+  <head>
+    <!-- Meta Definitions -->
+    <meta name="description" content="CAA Web Apps basic use case" />
+    <meta name="keywords" content="CAA Use Case" />
+
+    <!-- Widget Preferences -->
+    <widget:preferences name="Oww here is the prefs">
+      <widget:preference
+        name="TeamNames"
+        type="list"
+        label="Names"
+        defaultValue="selimhan"
+      >
+        <widget:option label="selimhan" value="selimhan"></widget:option>
+        <widget:option label="alessandro" value="alessandro"></widget:option>
+      </widget:preference>
+    </widget:preferences>
+
+    <!-- Widget Name -->
+    <title>My First Widget</title>
+
+    <!-- My JS Codes -->
+    <script>
+      "use strict";
+
+      /* Meta Data */
+      let myDataDescription = widget.metas.description;
+
+      /* Set Preferences */
+      let value = "selimhan";
+      widget.setValue("TeamNames", "selimhan");
+
+      /* My Widget Callbacks */
+      let MyWidget = {
+        onLoadCB: function () {
+          widget.body.innerHTML = "Hello World!";
+        },
+        onRefresh: function () {
+          widget.body.innerHTML = "Refreshed";
+        },
+        onViewChangeCB: function (TheViewArg) {},
+        printPref: function () {
+          value = widget.getValue("TeamNames");
+          alert("Selected name is: " + value);
+        },
+        onResize: function () {
+          // alert("onResize callback");
+        },
+        onKeyboardAction: function (key) {
+          // alert("onKeyboardAction:" + " / " + key);
+          if (key == 13) {
+            // ----> click enter?
+            MyWidget.printPref();
+          }
+        },
+      };
+
+      /* Add Events */
+      widget.addEvent("onLoad", MyWidget.onLoadCB);
+      widget.addEvent('onRefresh', MyWidget.onRefresh);  
+      widget.addEvent("onViewChange", MyWidget.onViewChangeCB);
+      widget.addEvent("printPref", MyWidget.printPref);
+      widget.addEvent("onResize", MyWidget.onResize);
+      widget.addEvent("onKeyboardAction", MyWidget.onKeyboardAction);
+    </script>
+  </head>
+  <body>
+    <!-- You can put your components -->
+  </body>
+</html>
