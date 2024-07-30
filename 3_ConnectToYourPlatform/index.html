@@ -1,0 +1,151 @@
+<!-- Default html template -->
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<!-- Needs to put for connection -->
+<html
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:widget="http://www.netvibes.com/ns/"
+>
+  <head>
+    <!-- Widget Name -->
+    <title>Get Platform Details</title>
+
+    <!-- My JS Codes -->
+    <script>
+      /* Global Libraries */
+      require([
+        "DS/i3DXCompassServices/i3DXCompassServices",
+        "DS/CAAi3DXCompassServiceUrl/CAAi3DXCompassMngt",
+      ], function (i3DXCompassServices, CAAi3DXCompassMngt) {
+        "use strict";
+
+        /* My Widget */
+        let MyWidget = {
+          onLoad: function () {
+            // manage the asynchonysum
+            CAAi3DXCompassMngt.unValidData();
+
+            if (widget.getValue("PlatFormInstanceId") === "") {
+              // Calling getPlatformServices
+              i3DXCompassServices.getPlatformServices({
+                onComplete: function (data) {
+                  CAAi3DXCompassMngt.setPlatformServices(data);
+                  MyWidget.DataReady();
+                },
+                onFailure: function () {
+                  console.warn("Failure");
+                },
+              });
+
+              // Calling getServiceURL
+              i3DXCompassServices.getServiceUrl({
+                serviceName: widget.getValue("ServiceName"),
+                onComplete: function (data) {
+                  CAAi3DXCompassMngt.setServiceUrl(data);
+                  MyWidget.DataReady();
+                },
+                onFailure: function () {
+                  console.warn("Failure");
+                },
+              });
+            } else {
+              // Calling getPlatformServices
+              i3DXCompassServices.getPlatformServices({
+                platformId: widget.getValue("PlatFormInstanceId"),
+                onComplete: function (data) {
+                  CAAi3DXCompassMngt.setPlatformServices(data);
+                  MyWidget.DataReady();
+                },
+                onFailure: function () {
+                  console.warn("Failure");
+                },
+              });
+
+              // Calling getServiceURL
+              i3DXCompassServices.getServiceUrl({
+                serviceName: widget.getValue("ServiceName"),
+                platformId: widget.getValue("PlatFormInstanceId"),
+                onComplete: function (data) {
+                  CAAi3DXCompassMngt.setServiceUrl(data);
+                  MyWidget.DataReady();
+                },
+                onFailure: function () {
+                  console.warn("Failure");
+                },
+              });
+            }
+          },
+          DataReady: function () {
+            var service = widget.getValue("ServiceName");
+            var platformId = widget.getValue("PlatFormInstanceId");
+            var ServiceStr =
+              MyWidget.GetTextForgetServiceUrl(service);
+            var PlatformStr =
+              MyWidget.GetTextForgetPlatformServices(platformId);
+
+            widget.body.innerHTML = PlatformStr + "</br>" + ServiceStr;
+          },
+          GetTextForgetPlatformServices: function (platformid) {
+            var text = "Information from getPlatformServices" + "</br>";
+
+            if (datafromgetPlatformServices === null) {
+              text = text + "Still not returned";
+            } else {
+              if (typeof datafromgetPlatformServices === "undefined") {
+                text = text + "error with the platform instance";
+              } else {
+                if (platformid === "") {
+                  datafromgetPlatformServices.forEach(function (platform) {
+                    for (var key in platform) {
+                      text = text + key + " : " + platform[key] + "<br>";
+                    }
+                  });
+                } else {
+                  for (var key in datafromgetPlatformServices) {
+                    text =
+                      text +
+                      key +
+                      " : " +
+                      datafromgetPlatformServices[key] +
+                      "<br>";
+                  }
+                }
+              }
+            }
+            return text;
+          },
+          GetTextForgetServiceUrl: function (servicename) {
+            var text =
+              "Information from getServiceUrl for " + servicename + "</br>";
+
+            if (datafromgetServiceUrl === null) {
+              text = text + "Still not returned";
+            } else {
+              if (typeof datafromgetServiceUrl === "undefined") {
+                text =
+                  text + "error with the service name or platform instance ";
+              } else if (typeof datafromgetServiceUrl === "string") {
+                text = text + "url:" + datafromgetServiceUrl;
+              } else {
+                datafromgetServiceUrl.forEach(function (service) {
+                  text = text + "platformId: " + service["platformId"] + "<br>";
+                  text = text + "url:" + service["url"] + "<br><br>";
+                });
+                text = text + "<br>";
+              }
+            }
+            return text;
+          },
+        };
+
+        /* Add events */
+        widget.addEvent("onLoad", MyWidget.onLoad);
+        widget.addEvent("DataReady", MyWidget.DataReady);
+        widget.addEvent("GetTextForgetPlatformServices", MyWidget.GetTextForgetPlatformServices);
+        widget.addEvent("GetTextForgetServiceUrl", MyWidget.GetTextForgetServiceUrl);
+      });
+    </script>
+  </head>
+  <body></body>
+</html>
