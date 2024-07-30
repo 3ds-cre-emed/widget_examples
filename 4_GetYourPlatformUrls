@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:widget="http://www.netvibes.com/ns/"
+>
+  <head>
+    <!-- Widget Name -->
+    <title>Connect to 3DSpace</title>
+
+    <!-- My JS Codes -->
+    <script>
+      /* global widget,require */
+      require([
+        "DS/WAFData/WAFData",
+        "DS/i3DXCompassServices/i3DXCompassServices",
+      ], function (WAFData, i3DXCompassServices) {
+        console.log("MyWidget creating...");
+        let MyWidget = {
+          serviceUrl: "",
+          onLoad: function () {
+            widget.body.innerHTML = "<h1>Still wwait to connect!</h1>";
+            i3DXCompassServices.getPlatformServices({
+              onComplete: function (data) {
+                //CAAi3DXCompassMngt.setPlatformServices(data);
+                let x = "";
+                for (let i = 0; i < data.length; i++) {
+                  const element = "<h1><p>" + data[i].displayName + "</p></h1>" + "<p>" + data[i]["3DSpace"] + "</p>";
+                  x = x + element;
+                }
+                widget.body.innerHTML = x;
+                console.log(data);
+              },
+              onFailure: function () {
+                console.warn("Failure");
+              },
+            });
+          },
+          onRefresh: function () {
+            widget.body.innerHTML = "<h1>Refreshed</h1>";
+          },
+        };
+
+        console.log("MyWidget definingg...");
+
+        // Define callbacks on widget events
+        widget.addEvent("onLoad", MyWidget.onLoad);
+        widget.addEvent("onRefresh", MyWidget.onRefresh);
+
+        console.log("defining completed ...");
+      });
+    </script>
+  </head>
+  <body></body>
+</html>
