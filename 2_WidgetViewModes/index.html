@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:widget="http://www.netvibes.com/ns/">
+    <head>
+
+        <!-- Application Metas -->
+        <title>Fullview sample app</title>
+        <meta name="author" content="SWP team" />
+        <meta name="description" content="A sample widget using the view API" />
+
+        <!-- Allow maximized view -->
+        <meta name="availableViews" content="maximized"/>
+
+        <!-- Application Standalone emulation files -->
+        <link rel="stylesheet" type="text/css"
+            href="http://uwa.netvibes.com/lib/c/UWA/assets/css/standalone.css" />
+        <script type="text/javascript"
+            src="http://uwa.netvibes.com/lib/c/UWA/js/UWA_Standalone_Alone.js"></script>
+
+        <!-- Application JavaScript Source -->
+        <script type="text/javascript">
+        //<![CDATA[
+
+            /**
+             * We create the global MyWidget object (it could be any other name).
+             * This object will be used to store variables and functions.
+             */
+            var MyWidget = {
+
+                /**
+                 * The onViewChange function will be called every time the view change.
+                 * @param {Event} event - the view change event.
+                 */
+                onViewChange: function (event) {
+                    MyWidget.display(event.type);
+                },
+
+                /**
+                 * The onLoad() function is the first one,
+                 * it will be triggered by widget "onLoad" event.
+                 */
+                onLoad: function () {
+                    // Future release of UWA will likely include a widget.getView method.
+                    // MyWidget.display(widget.getView());
+                    MyWidget.display();
+                },
+
+                /**
+                 * Select display method according to view.
+                 * @param {String} view - the current view, usually 'maximized'.
+                 */
+                display: function (view) {
+                    if (view === 'maximized') {
+                        // display maximized view if available
+                        MyWidget.displayMaximizedApp();
+                    } else {
+                        // defaults to normal display
+                        MyWidget.displayApp();
+                    }
+                },
+
+                /**
+                 * Display maximized view.
+                 */
+                displayMaximizedApp: function () {
+                    widget.setBody('Maximized view app');
+                },
+
+                /**
+                 * Display default view (not maximized).
+                 */
+                displayApp: function () {
+                    widget.setBody('Normal view app');
+                }
+            };
+
+            /**
+             * The "onLoad" event is the very first event triggered when
+             * the widget is fully loaded or when the preferences are validated.
+             *
+             * Here, we add MyWidget.onLoad() function as "onLoad" event
+             * listener on the widget and MyWidget.onViewChange() as "onViewChange"
+             * event listener.
+             */
+            widget.addEvents({
+                'onLoad': MyWidget.onLoad,
+                'onViewChange': MyWidget.onViewChange
+            });
+
+        //]]>
+        </script>
+
+      </head>
+      <body>
+            <p>Loading...</p>
+      </body>
+</html>
